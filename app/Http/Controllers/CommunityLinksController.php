@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Channel;
 use App\Models\CommunityLink;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,8 +16,9 @@ class CommunityLinksController extends Controller
      */
     public function index()
     {
-        $links = CommunityLink::paginate(25);
-        return view('community.index', compact('links'));
+        $links = CommunityLink::where('approved', 1)->paginate(25);
+        $channels = Channel::orderBy('title', 'asc')->get();
+        return view('community.index', compact('links', 'channels'));
     }
 
     /**
@@ -38,12 +40,22 @@ class CommunityLinksController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
+            'channel_id' => 'required|exist:channels,id',
             'title' => 'required',
-            'link' => 'required|active_url'
+            'link' => 'required|active_url:unique:community_links'
         ]);
 
         CommunityLink::from(auth()->user())
             ->contribute($request->all());
+
+
+        if(auth()->user()->isTrusted()) {
+            flash('Thanks!','Thanks for the contributions');
+        }else {
+            flash('Thanks!','This constributions will be approved shortly');
+        }
+
+
 
         return back();
     }
