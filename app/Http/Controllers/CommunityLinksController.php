@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\CommunityLinkAlreadySubmitted;
+use App\Http\Requests\CommunityLinkRequest;
 use App\Models\Channel;
 use App\Models\CommunityLink;
 use Illuminate\Http\Request;
@@ -16,7 +18,7 @@ class CommunityLinksController extends Controller
      */
     public function index()
     {
-        $links = CommunityLink::where('approved', 1)->paginate(25);
+        $links = CommunityLink::where('approved', 1)->latest('updated_at')->paginate(25);
         $channels = Channel::orderBy('title', 'asc')->get();
         return view('community.index', compact('links', 'channels'));
     }
@@ -37,25 +39,29 @@ class CommunityLinksController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(CommunityLinkRequest $request)
     {
-        $this->validate($request, [
-            'channel_id' => 'required|exist:channels,id',
-            'title' => 'required',
-            'link' => 'required|active_url:unique:community_links'
-        ]);
+        // $this->validate($request, [
+        //     'channel_id' => 'required|exist:channels,id',
+        //     'title' => 'required',
+        //     'link' => 'required|active_url:unique:community_links'
+        // ]);
 
-        CommunityLink::from(auth()->user())
+
+        try {
+            CommunityLink::from(auth()->user())
             ->contribute($request->all());
 
-
-        if(auth()->user()->isTrusted()) {
-            flash('Thanks!','Thanks for the contributions');
-        }else {
-            flash('Thanks!','This constributions will be approved shortly');
+            if(auth()->user()->isTrusted()) {
+                flash('Thanks!','Thanks for the contributions');
+            }else {
+                flash('Thanks!','This constributions will be approved shortly');
+            }
+        } catch (CommunityLinkAlreadySubmitted $e) {
+           flash()->overlay(
+        "We'll instead bump the timestamps and bring that link back to the top. Thanks",
+            'That Link Has Already Been Submitted');
         }
-
-
 
         return back();
     }

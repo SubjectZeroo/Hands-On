@@ -33,7 +33,7 @@
                         {!! $errors->first('link', '<span class="help-block">:message</span>') !!}
                     </div>
                     <div class="form-group">
-                        <button class="btn btn-primary"></button>
+                        <button class="btn btn-primary">Contribute Link</button>
                     </div>
                 </form>
             </div>
