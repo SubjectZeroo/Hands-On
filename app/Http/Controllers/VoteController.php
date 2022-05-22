@@ -2,29 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\CommunityLinkAlreadySubmitted;
-use App\Http\Requests\CommunityLinkRequest;
-use App\Models\Channel;
 use App\Models\CommunityLink;
-use App\Queries\CommunityLinksQuery;
+use App\Models\CommunityLinkVote;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
-class CommunityLinksController extends Controller
+class VoteController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Channel $channel)
+    public function index()
     {
-
-        $links = (new CommunityLinksQuery)->get($channel, request()->exists('popular'));
-
-        $channels = Channel::orderBy('title', 'asc')->get();
-
-        return view('community.index', compact('links', 'channels', 'channel'));
+        //
     }
 
     /**
@@ -43,29 +38,27 @@ class CommunityLinksController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(CommunityLinkRequest $request)
+    public function store(Request $request, CommunityLink $link)
     {
-        // $this->validate($request, [
-        //     'channel_id' => 'required|exist:channels,id',
-        //     'title' => 'required',
-        //     'link' => 'required|active_url:unique:community_links'
-        // ]);
+        // auth()->user()->votes()->toggle($link);
+        // $user = auth()->user();
 
+        // $toggleVoteFor = $user->votedFor($link) ? 'unvoteFor' : 'voteFor';
 
-        try {
-            CommunityLink::from(auth()->user())
-            ->contribute($request->all());
+        // $user->toggleVoteFor($link);
 
-            if(auth()->user()->isTrusted()) {
-                flash('Thanks!','Thanks for the contributions');
-            }else {
-                flash('Thanks!','This constributions will be approved shortly');
-            }
-        } catch (CommunityLinkAlreadySubmitted $e) {
-           flash()->overlay(
-        "We'll instead bump the timestamps and bring that link back to the top. Thanks",
-            'That Link Has Already Been Submitted');
-        }
+        // if($user->votedFor($link)) {
+        //     $user->unvoteFor($link);
+        // }else {
+        //     $user->voteFor($link);
+        // }
+
+        // CommunityLinkVote::firstOrNew([
+        //     'user_id' => auth()->id(),
+        //     'community_link_id' => $link->id
+        // ])->toggle();
+
+        auth()->user()->toggleVoteFor($link);
 
         return back();
     }

@@ -39,9 +39,16 @@ class CommunityLink extends Model
 
              throw new CommunityLinkAlreadySubmitted;
 
-
         }
         return $this->fill($attributes)->save();
+    }
+
+    public function scopeForChannel($builder, $channel)
+    {
+        if($channel->exists) {
+            return $builder->where('channel_id', $channel->id);
+        }
+        return $builder;
     }
 
     public function approved()
@@ -53,7 +60,12 @@ class CommunityLink extends Model
 
     public function creator()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'user_id');
+    }
+
+    public function votes()
+    {
+        return $this->hasMany(CommunityLinkVote::class, 'community_link_id');
     }
 
     /**

@@ -23,3 +23,5 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 Route::get('/community', [App\Http\Controllers\CommunityLinksController::class, 'index']);
 Route::post('/community', [App\Http\Controllers\CommunityLinksController::class, 'store']);
+Route::get('/community/{channel}',[App\Http\Controllers\CommunityLinksController::class, 'index']);
+Route::post('/votes/{link}',[App\Http\Controllers\VoteController::class, 'store']);
